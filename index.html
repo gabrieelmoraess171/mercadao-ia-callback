@@ -24,8 +24,12 @@
   <p id="status">Aguardando autorização do Mercado Livre.</p>
   <section id="result" hidden>
     <p>O código abaixo é temporário e confidencial. Use apenas no Mercadão IA ou em um fluxo de autenticação privado. Não envie por mensagem.</p>
+    <p><strong>Código de autorização</strong></p>
     <code id="code"></code>
     <p><button id="copy" type="button">Copiar código</button></p>
+    <p><strong>State para validação</strong></p>
+    <code id="state"></code>
+    <p><button id="copy-state" type="button">Copiar state</button></p>
   </section>
   <small>Esta página não recebe senhas, não troca códigos por tokens e não envia informações a terceiros. A integração com o aplicativo Windows deve validar o parâmetro state e usar PKCE quando habilitado.</small>
 </main>
@@ -33,6 +37,7 @@
 (function () {
   const params = new URLSearchParams(location.search);
   const code = params.get("code");
+  const state = params.get("state");
   const error = params.get("error");
   // Não manter o código de autorização visível na barra de endereço ou no histórico.
   history.replaceState(null, "", location.pathname);
@@ -44,7 +49,14 @@
   if (!code) return;
   status.textContent = "Autorização recebida.";
   document.getElementById("code").textContent = code;
+  document.getElementById("state").textContent = state || "Não recebido — não conclua a autenticação";
+  document.getElementById("copy-state").hidden = !state;
+  if (!state) status.textContent = "State ausente: reinicie a autorização no aplicativo.";
   document.getElementById("result").hidden = false;
+  document.getElementById("copy-state").addEventListener("click", async function () {
+    try { await navigator.clipboard.writeText(state); this.textContent = "State copiado"; }
+    catch { this.textContent = "Selecione e copie o state acima"; }
+  });
   document.getElementById("copy").addEventListener("click", async function () {
     try {
       await navigator.clipboard.writeText(code);
